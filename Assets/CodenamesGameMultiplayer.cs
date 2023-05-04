@@ -26,6 +26,16 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     {
         OnPlayerDataNetworkListChanged?.Invoke(this, EventArgs.Empty);
     }
+    public override void OnNetworkSpawn()
+    {
+        if (!IsServer)
+            return;
+        playerDataNetworkList.Add(new PlayerData
+        {
+            clientId = 0,
+        });
+        SetPlayerNameServerRpc(GetPlayerName());
+    }
     public void StartHost()
     {
         NetworkManager.Singleton.StartHost();
@@ -43,7 +53,6 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     }
     private void NetworkManager_Server_OnClientDisconnectCallback(ulong clientId)
     {
-        Debug.Log(playerDataNetworkList.Count);
         for (int i = 0; i < playerDataNetworkList.Count; i++)
         {
             PlayerData playerData = playerDataNetworkList[i];
@@ -54,7 +63,6 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
             }
         }
     }
-
     private void NetworkManager_OnClientConnectedCallback(ulong clientId)
     {
         playerDataNetworkList.Add(new PlayerData
@@ -76,13 +84,13 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     }
     public void ChangePlayerSide(Side side)
     {
+        Debug.Log(side);
         ChangePlayerSideServerRpc(side);
     }
 
     [ServerRpc(RequireOwnership = false)]
     private void ChangePlayerSideServerRpc(Side side, ServerRpcParams serverRpcParams = default)
     {
-
         int playerDataIndex = GetPlayerDataIndexFromClientId(serverRpcParams.Receive.SenderClientId);
 
         PlayerData playerData = playerDataNetworkList[playerDataIndex];
@@ -90,7 +98,6 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
         playerData.side = side;
 
         playerDataNetworkList[playerDataIndex] = playerData;
-        Debug.Log(playerData.playerName + " 's side is " + playerData.side);
     }
     public string GetPlayerName()
     {
@@ -111,6 +118,7 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     {
         foreach (PlayerData playerData in playerDataNetworkList)
         {
+            Debug.Log("id: " + playerData.clientId + " name :" + playerData.playerName + " side: " + playerData.side);
             if (playerData.clientId == clientId)
             {
                 return playerData;

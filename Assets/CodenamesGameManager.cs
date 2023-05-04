@@ -33,7 +33,11 @@ public class CodenamesGameManager : NetworkBehaviour
     private void ChooseTheSideToStartFirst()
     {
         startSide = (SideColor)UnityEngine.Random.Range(0, 1);
-        Debug.Log(startSide);
+        if (startSide == SideColor.Blue)
+            GameStateManager.Instance.SetState(State.BlueSpymasterGivesClue);
+        else if (startSide == SideColor.Red)
+            GameStateManager.Instance.SetState(State.RedSpymasterGivesClue);
+
     }
     private void SetWords()
     {
@@ -62,9 +66,7 @@ public class CodenamesGameManager : NetworkBehaviour
                 SetButton(words[i].transform.GetComponentInParent<Button>(), SideColor.Blue);
             }
         }
-
     }
-
     private void SetButton(Button button, SideColor sideColor)
     {
         SetButtonClientRpc(button.GetComponentInChildren<NetworkObject>(), sideColor);
@@ -72,16 +74,20 @@ public class CodenamesGameManager : NetworkBehaviour
     [ClientRpc]
     private void SetButtonClientRpc(NetworkObjectReference reference, SideColor sideColor)
     {
+        var localSide = CodenamesGameMultiplayer.Instance.GetPlayerData().side;
+        //only spymasters can see the buttons color
+        if (localSide == Side.BlueSideOperative || localSide == Side.RedSideOperative)
+            return;
         reference.TryGet(out NetworkObject obj);
         Button button = obj.GetComponentInParent<Button>();
         if (sideColor == SideColor.Blue)
         {
-            button.image.color = Color.blue;
+            button.image.color = new Color32(2, 144, 204, 255); //blue
             blueSideWords.Add(button, false);
         }
         else if (sideColor == SideColor.Red)
         {
-            button.image.color = Color.red;
+            button.image.color = new Color32(209, 45, 45, 255); //red
             redSideWords.Add(button, false);
         }
     }

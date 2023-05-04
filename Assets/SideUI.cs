@@ -33,8 +33,7 @@ public class SideUI : NetworkBehaviour
     private Button lastSelectedButton;
 
     private Dictionary<ulong, ulong> usernamePrefabs = new Dictionary<ulong, ulong>();
-
-    private void Awake()
+    public override void OnNetworkSpawn()
     {
         RedSideOperativeButton.onClick.AddListener(() =>
         {
