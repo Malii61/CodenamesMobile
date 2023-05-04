@@ -36,6 +36,16 @@ public class WordGenerator : MonoBehaviour
         "Fetih",
         "Flüt",
         "Gitar",
+        "Pazar",
+        "Devlet",
+        "Çanta",
+        "Rövanþ",
+        "Salý",
+        "Galatasaray",
+        "Trabzonspor",
+        "Düdük",
+        "Seçim",
+        "Bayrak"
     };
 
     public static List<string> GenerateRandomWordList(int listLength)

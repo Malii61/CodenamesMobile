@@ -32,17 +32,57 @@ public class CodenamesGameManager : NetworkBehaviour
     }
     private void ChooseTheSideToStartFirst()
     {
-        startSide = (SideColor) UnityEngine.Random.Range(-1, 1);
+        startSide = (SideColor)UnityEngine.Random.Range(0, 1);
+        Debug.Log(startSide);
     }
     private void SetWords()
     {
         List<TextMeshProUGUI> words = WordTableUI.Instance.GetRandomWords(WORD_COUNT);
-        for (int i = 0; i < WORD_COUNT + 1 / 2; i++)
+        Debug.Log(words.Count);
+
+        for (int i = 0; i <= WORD_COUNT / 2; i++)
         {
-            if(startSide == SideColor.Blue)
+            if (startSide == SideColor.Blue)
             {
-                blueSideWords.Add(words[i].transform.parent.GetComponent<Button>(), false);
+                SetButton(words[i].transform.GetComponentInParent<Button>(), SideColor.Blue);
             }
+            else if (startSide == SideColor.Red)
+            {
+                SetButton(words[i].transform.GetComponentInParent<Button>(), SideColor.Red);
+            }
+        }
+        for (int i = WORD_COUNT / 2 + 1; i < WORD_COUNT; i++)
+        {
+            if (startSide == SideColor.Blue)
+            {
+                SetButton(words[i].transform.GetComponentInParent<Button>(), SideColor.Red);
+            }
+            else if (startSide == SideColor.Red)
+            {
+                SetButton(words[i].transform.GetComponentInParent<Button>(), SideColor.Blue);
+            }
+        }
+
+    }
+
+    private void SetButton(Button button, SideColor sideColor)
+    {
+        SetButtonClientRpc(button.GetComponentInChildren<NetworkObject>(), sideColor);
+    }
+    [ClientRpc]
+    private void SetButtonClientRpc(NetworkObjectReference reference, SideColor sideColor)
+    {
+        reference.TryGet(out NetworkObject obj);
+        Button button = obj.GetComponentInParent<Button>();
+        if (sideColor == SideColor.Blue)
+        {
+            button.image.color = Color.blue;
+            blueSideWords.Add(button, false);
+        }
+        else if (sideColor == SideColor.Red)
+        {
+            button.image.color = Color.red;
+            redSideWords.Add(button, false);
         }
     }
 }
