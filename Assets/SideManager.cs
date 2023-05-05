@@ -30,6 +30,7 @@ public class SideManager : NetworkBehaviour
     [SerializeField] private Transform BlueSideSpymasterTransform;
 
     [SerializeField] private Transform usernameLabelPrefab;
+
     private List<Vector3> firstPositions = new List<Vector3>();
     private void Awake()
     {

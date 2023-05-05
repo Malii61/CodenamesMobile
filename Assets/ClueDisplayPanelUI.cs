@@ -10,7 +10,6 @@ public class ClueDisplayPanelUI : NetworkBehaviour
     [SerializeField] private TextMeshProUGUI clueText;
     [SerializeField] private TextMeshProUGUI clueCountText;
     private Animator anim;
-    private int changedStateCount;
     private void Awake()
     {
         anim = GetComponent<Animator>();
@@ -23,8 +22,10 @@ public class ClueDisplayPanelUI : NetworkBehaviour
 
     private void GameStateManager_OnStateChanged(object sender, EventArgs e)
     {
-        changedStateCount++;
-        if (changedStateCount == 3)
+        Side side = CodenamesGameMultiplayer.Instance.GetPlayerData().side;
+        State state = GameStateManager.Instance.GetState();
+        if(side == Side.RedSideSpymaster && state == State.BlueSpymasterGivesClue ||
+            side == Side.BlueSideSpymaster && state == State.RedSpymasterGivesClue)
         {
             DisablePanelServerRpc();
         }
@@ -52,8 +53,7 @@ public class ClueDisplayPanelUI : NetworkBehaviour
     }
     private IEnumerator ChangeState()
     {
-        yield return new WaitForSeconds(3);
-        changedStateCount = 0;
+        yield return new WaitForSeconds(2);
         GameStateManager.Instance.ChangeState();
         HideClueServerRpc();
     }

@@ -40,7 +40,9 @@ public class OperativeManager : MonoBehaviour
         if (!isGuessable)
             return;
         currentButton = btn;
-
+        Debug.Log(btn.GetHashCode());
+        Debug.Log(btn.GetInstanceID());
+        Debug.Log("operative manager: kelime seçildi");
         Side side = CodenamesGameMultiplayer.Instance.GetPlayerData().side;
         SideColor localSideColor;
         if (side == Side.BlueSideOperative)

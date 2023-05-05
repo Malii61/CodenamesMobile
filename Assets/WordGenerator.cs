@@ -60,11 +60,3 @@ public class WordGenerator : MonoBehaviour
         return shuffledList.GetRange(0, listLength);
     }
 }
-/*2:55:30 te tüm oyuncularýn hazýr olduðu bilgisini içeren kod
- 
- 
- 
- 
- 
- 
- */
