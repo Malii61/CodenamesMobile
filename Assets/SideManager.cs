@@ -14,11 +14,11 @@ public enum Side
 public enum SideColor
 {
     Blue,
-    Red
+    Red,
+    None
 }
-public class SideUI : NetworkBehaviour
+public class SideManager : NetworkBehaviour
 {
-  
     [SerializeField] private Button RedSideOperativeButton;
     [SerializeField] private Button RedSideSpymasterButton;
     [SerializeField] private Button BlueSideOperativeButton;
@@ -30,6 +30,15 @@ public class SideUI : NetworkBehaviour
     [SerializeField] private Transform BlueSideSpymasterTransform;
 
     [SerializeField] private Transform usernameLabelPrefab;
+    private List<Vector3> firstPositions = new List<Vector3>();
+    private void Awake()
+    {
+        firstPositions.Add(RedSideOperativeTransform.position);
+        firstPositions.Add(BlueSideOperativeTransform.position);
+        firstPositions.Add(RedSideSpymasterTransform.position);
+        firstPositions.Add(BlueSideSpymasterTransform.position);
+    }
+
     private Button lastSelectedButton;
 
     private Dictionary<ulong, ulong> usernamePrefabs = new Dictionary<ulong, ulong>();
@@ -51,8 +60,28 @@ public class SideUI : NetworkBehaviour
         {
             OnClick_SideButton(Side.BlueSideSpymaster, NetworkManager.Singleton.LocalClientId, CodenamesGameMultiplayer.Instance.GetPlayerName());
         });
+
     }
 
+    private void UpdateTransforms()
+    {
+        RedSideOperativeTransform.position = firstPositions[0];
+        RedSideOperativeTransform.localScale = Vector3.one;
+
+        BlueSideOperativeTransform.position = firstPositions[1];
+        BlueSideOperativeTransform.localScale = Vector3.one;
+
+        RedSideSpymasterTransform.position = firstPositions[2];
+        RedSideSpymasterTransform.localScale = Vector3.one;
+
+        BlueSideSpymasterTransform.position = firstPositions[3];
+        BlueSideSpymasterTransform.localScale = Vector3.one;
+    }
+    private void LateUpdate()
+    {
+        if (RedSideOperativeTransform.position != firstPositions[0])
+            UpdateTransforms();
+    }
     public void OnClick_SideButton(Side _side, ulong clientId, FixedString64Bytes username)
     {
         //check last selected button
@@ -60,7 +89,7 @@ public class SideUI : NetworkBehaviour
             lastSelectedButton.gameObject.SetActive(true);
 
         //assign this button to last selected
-        lastSelectedButton = GetButtonWithSide(_side);
+        lastSelectedButton = GetButtonFromSide(_side);
         lastSelectedButton.gameObject.SetActive(false);
 
         //assign player side
@@ -75,12 +104,12 @@ public class SideUI : NetworkBehaviour
     {
         if (!usernamePrefabs.ContainsKey(clientId))
         {
-            NetworkObject usernamePrefabNetworkObj = Instantiate(usernameLabelPrefab, GetTransformWithSide(side)).GetComponent<NetworkObject>();
+            NetworkObject usernamePrefabNetworkObj = Instantiate(usernameLabelPrefab, GetTransformFromSide(side)).GetComponent<NetworkObject>();
             usernamePrefabNetworkObj.SpawnWithOwnership(NetworkManager.LocalClientId);
             ulong prefabId = usernamePrefabNetworkObj.NetworkObjectId;
             AddUsernameToDictionaryClientRpc(clientId, prefabId, username.ToString());
         }
-        NetworkManager.SpawnManager.SpawnedObjects[usernamePrefabs[clientId]].transform.SetParent(GetTransformWithSide(side));
+        NetworkManager.SpawnManager.SpawnedObjects[usernamePrefabs[clientId]].transform.SetParent(GetTransformFromSide(side));
     }
 
     [ClientRpc]
@@ -90,7 +119,7 @@ public class SideUI : NetworkBehaviour
         Transform usernamePrefab = NetworkManager.SpawnManager.SpawnedObjects[usernamePrefabs[clientId]].transform;
         usernamePrefab.GetChild(0).GetComponent<TextMeshProUGUI>().text = username;
     }
-    private Transform GetTransformWithSide(Side side)
+    private Transform GetTransformFromSide(Side side)
     {
         return side switch
         {
@@ -100,7 +129,7 @@ public class SideUI : NetworkBehaviour
             _ => RedSideOperativeTransform,
         };
     }
-    private Button GetButtonWithSide(Side side)
+    private Button GetButtonFromSide(Side side)
     {
         return side switch
         {

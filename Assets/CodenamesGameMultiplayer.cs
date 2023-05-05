@@ -30,11 +30,8 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     {
         if (!IsServer)
             return;
-        playerDataNetworkList.Add(new PlayerData
-        {
-            clientId = 0,
-        });
-        SetPlayerNameServerRpc(GetPlayerName());
+        //host
+        NetworkManager_OnClientConnectedCallback(0);
     }
     public void StartHost()
     {
@@ -118,7 +115,6 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     {
         foreach (PlayerData playerData in playerDataNetworkList)
         {
-            Debug.Log("id: " + playerData.clientId + " name :" + playerData.playerName + " side: " + playerData.side);
             if (playerData.clientId == clientId)
             {
                 return playerData;

@@ -7,13 +7,21 @@ using TMPro;
 
 public class CodenamesGameManager : NetworkBehaviour
 {
+    
     public static CodenamesGameManager Instance { get; private set; }
+
+    private const int WORD_COUNT = 17;
+
     [SerializeField] private Button startGameButton;
+
     public EventHandler OnGameStarted;
+    
     private Dictionary<Button, bool> redSideWords = new Dictionary<Button, bool>();
     private Dictionary<Button, bool> blueSideWords = new Dictionary<Button, bool>();
-    private const int WORD_COUNT = 17;
+
     SideColor startSide;
+    public Color blue = new Color32(2, 144, 204, 255);
+    public Color red = new Color32(209, 45, 45, 255);
     private void Awake()
     {
         Instance = this;
@@ -42,7 +50,6 @@ public class CodenamesGameManager : NetworkBehaviour
     private void SetWords()
     {
         List<TextMeshProUGUI> words = WordTableUI.Instance.GetRandomWords(WORD_COUNT);
-        Debug.Log(words.Count);
 
         for (int i = 0; i <= WORD_COUNT / 2; i++)
         {
@@ -82,13 +89,50 @@ public class CodenamesGameManager : NetworkBehaviour
         Button button = obj.GetComponentInParent<Button>();
         if (sideColor == SideColor.Blue)
         {
-            button.image.color = new Color32(2, 144, 204, 255); //blue
+            button.image.color = blue; 
             blueSideWords.Add(button, false);
         }
         else if (sideColor == SideColor.Red)
         {
-            button.image.color = new Color32(209, 45, 45, 255); //red
+            button.image.color = red; //red
             redSideWords.Add(button, false);
         }
+    }
+ 
+    public void OnPlayerGuessed(Button btn ,SideColor playerSideColor)
+    {
+        if (blueSideWords.ContainsKey(btn))
+        {
+            blueSideWords[btn] = true;
+            OperativeManager.Instance.CheckGuessedButtonColor(SideColor.Blue);
+            CheckIfPlayerGuessedRight(playerSideColor, SideColor.Red);
+        }
+        else if (redSideWords.ContainsKey(btn))
+        {
+            redSideWords[btn] = true;
+            OperativeManager.Instance.CheckGuessedButtonColor(SideColor.Red);
+            CheckIfPlayerGuessedRight(playerSideColor, SideColor.Red);
+        }
+        else
+        {
+            //guessed noncolor word
+            OperativeManager.Instance.CheckGuessedButtonColor(SideColor.None);
+            ChangeGameState();
+        }
+
+    }
+
+    private void CheckIfPlayerGuessedRight(SideColor playerSideColor, SideColor btnColor)
+    {
+        if(playerSideColor != btnColor)
+        {
+            //guessed wrong
+            ChangeGameState();
+        }
+    }
+
+    private void ChangeGameState()
+    {
+        GameStateManager.Instance.ChangeState();
     }
 }

@@ -6,13 +6,14 @@ public class ClueFieldUI : MonoBehaviour
 {
     [SerializeField] private Button giveClueButton;
     [SerializeField] private TextMeshProUGUI clueText;
-    [SerializeField] private TextMeshProUGUI clueCountText;
+    [SerializeField] private TMP_Dropdown clueCountDropdown;
     [SerializeField] private ClueDisplayPanelUI clueDisplay;
     // Start is called before the first frame update
     private void Awake()
     {
-        giveClueButton.onClick.AddListener(() => {
-            OnClick_GiveClueButton(clueText.text,clueCountText.text);
+        giveClueButton.onClick.AddListener(() =>
+        {
+            OnClick_GiveClueButton(clueText.text, clueCountDropdown.value + 1);
         });
     }
     void Start()
@@ -20,17 +21,10 @@ public class ClueFieldUI : MonoBehaviour
         GameStateManager.Instance.OnStateChanged += GameStateManager_OnStateChanged;
         gameObject.SetActive(false);
     }
-
     private void GameStateManager_OnStateChanged(object sender, System.EventArgs e)
     {
-        Debug.Log(CodenamesGameMultiplayer.Instance.GetPlayerData().side);
-        if (GameStateManager.Instance.GetState() == State.BlueSpymasterGivesClue &&
-            CodenamesGameMultiplayer.Instance.GetPlayerData().side == Side.BlueSideSpymaster ||
-            GameStateManager.Instance.GetState() == State.RedSpymasterGivesClue && 
-            CodenamesGameMultiplayer.Instance.GetPlayerData().side == Side.RedSideSpymaster
-            )
+        if (GameStateManager.Instance.CanLocalPlayerGiveClue())
         {
-            Debug.Log("obje aktif ediliyoor");
             gameObject.SetActive(true);
         }
         else
@@ -43,8 +37,8 @@ public class ClueFieldUI : MonoBehaviour
         GameStateManager.Instance.OnStateChanged -= GameStateManager_OnStateChanged;
     }
 
-    public void OnClick_GiveClueButton(string clueText, string clueCountText)
+    public void OnClick_GiveClueButton(string clueText, int clueCount)
     {
-        clueDisplay.ShowClue(clueText,clueCountText);
+        clueDisplay.ShowClue(clueText, clueCount.ToString());
     }
 }

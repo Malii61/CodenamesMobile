@@ -1,11 +1,10 @@
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 public class NetcodeUI : MonoBehaviour
 {
     [SerializeField] private Button startHostButton;
     [SerializeField] private Button startClientButton;
-    private void Awake()
+    private void Start()
     {
         startHostButton.onClick.AddListener(() =>
         {

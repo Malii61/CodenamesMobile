@@ -25,6 +25,10 @@ public class WordTableUI : NetworkBehaviour
     {
         Debug.Log("Kelimeler gösteriliyor");
     }
+    public override void OnDestroy()
+    {
+        CodenamesGameManager.Instance.OnGameStarted -= ShowWord;
+    }
 
     private void Update()
     {

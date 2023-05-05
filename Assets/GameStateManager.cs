@@ -1,6 +1,5 @@
 using System;
 using Unity.Netcode;
-using UnityEngine;
 public enum State
 {
     WaitingToStart,
@@ -30,15 +29,56 @@ public class GameStateManager : NetworkBehaviour
 
     private void State_OnValueChanged(State previousValue, State newValue)
     {
-        Debug.Log(newValue);
         OnStateChanged?.Invoke(this, EventArgs.Empty);
     }
     public void SetState(State _state)
     {
+        SetStateServerRpc(_state);
+    }
+    [ServerRpc(RequireOwnership = false)]
+    private void SetStateServerRpc(State _state)
+    {
         state.Value = _state;
     }
+
     public State GetState()
     {
         return state.Value;
+    }
+    public void ChangeState()
+    {
+        switch (state.Value)
+        {
+            case State.RedSpymasterGivesClue:
+                SetState(State.RedOperativesGuessing);
+                break;
+            case State.RedOperativesGuessing:
+                SetState(State.BlueSpymasterGivesClue);
+                break;
+            case State.BlueSpymasterGivesClue:
+                SetState(State.BlueOperativesGuessing);
+                break;
+            case State.BlueOperativesGuessing:
+                SetState(State.RedSpymasterGivesClue);
+                break;
+        }
+    }
+    public bool CanLocalPlayerGuess()
+    {
+        if (state.Value == State.BlueOperativesGuessing &&
+                 CodenamesGameMultiplayer.Instance.GetPlayerData().side == Side.BlueSideOperative ||
+                 state.Value == State.RedOperativesGuessing &&
+                 CodenamesGameMultiplayer.Instance.GetPlayerData().side == Side.RedSideOperative)
+            return true;
+        return false;
+    }
+    public bool CanLocalPlayerGiveClue()
+    {
+        if (state.Value == State.BlueSpymasterGivesClue &&
+                CodenamesGameMultiplayer.Instance.GetPlayerData().side == Side.BlueSideSpymaster ||
+                state.Value == State.RedSpymasterGivesClue &&
+                CodenamesGameMultiplayer.Instance.GetPlayerData().side == Side.RedSideSpymaster)
+            return true;
+        return false;
     }
 }
