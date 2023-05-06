@@ -41,6 +41,7 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     }
     public void StartClient()
     {
+        Debug.Log("Client baþlatýlýyor");
         NetworkManager.Singleton.StartClient();
         NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_Client_OnClientConnectedCallback;
     }
@@ -99,6 +100,7 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     public string GetPlayerName()
     {
         return UsernameUI.username;
+        return GetPlayerData().playerName.ToString();
     }
     public int GetPlayerDataIndexFromClientId(ulong clientId)
     {

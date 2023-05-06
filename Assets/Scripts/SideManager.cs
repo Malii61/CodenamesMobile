@@ -104,7 +104,7 @@ public class SideManager : NetworkBehaviour
             {
                 if (i < firstPositions.Count / 2)
                 {
-                    firstPositions[i] = new Vector2(firstPositions[i].x, firstPositions[i].y + 25);
+                    firstPositions[i] = new Vector2(firstPositions[i].x, firstPositions[i].y + 9);
                 }
                 else
                 {

@@ -136,10 +136,12 @@ Library: lib_burst_generated
 --compilation-defines=UNITY_UNET_PRESENT
 --compilation-defines=ENABLE_SPRITESHAPE_BURST
 --compilation-defines=TIMELINE_FRAMEACCURATE
+--compilation-defines=RELAY_SDK_INSTALLED
 --compilation-defines=ENABLE_URP
 --compilation-defines=COM_UNITY_MODULES_ANIMATION
 --compilation-defines=COM_UNITY_MODULES_PHYSICS
 --compilation-defines=COM_UNITY_MODULES_PHYSICS2D
+--compilation-defines=UGS_QOS_SUPPORTED
 --generate-link-xml=Temp\burst.link.xml
 --output=C:\Users\Admin\Documents\GitHub\CodenamesMobile\Temp\StagingArea\tempburstlibs\armeabi-v7a\lib_burst_generated
 --root-assembly=C:\Users\Admin\Documents\GitHub\CodenamesMobile\Temp\StagingArea\Data\Managed\UnityEngine.UI.dll
@@ -206,6 +208,10 @@ Library: lib_burst_generated
 --root-assembly=C:\Users\Admin\Documents\GitHub\CodenamesMobile\Temp\StagingArea\Data\Managed\Unity.InternalAPIEngineBridge.001.dll
 --root-assembly=C:\Users\Admin\Documents\GitHub\CodenamesMobile\Temp\StagingArea\Data\Managed\UnityEngine.Purchasing.AppleStub.dll
 --root-assembly=C:\Users\Admin\Documents\GitHub\CodenamesMobile\Temp\StagingArea\Data\Managed\Unity.RenderPipelines.Universal.Shaders.dll
+--root-assembly=C:\Users\Admin\Documents\GitHub\CodenamesMobile\Temp\StagingArea\Data\Managed\Unity.Services.Lobbies.dll
+--root-assembly=C:\Users\Admin\Documents\GitHub\CodenamesMobile\Temp\StagingArea\Data\Managed\Unity.Services.Authentication.dll
+--root-assembly=C:\Users\Admin\Documents\GitHub\CodenamesMobile\Temp\StagingArea\Data\Managed\Unity.Services.QoS.dll
+--root-assembly=C:\Users\Admin\Documents\GitHub\CodenamesMobile\Temp\StagingArea\Data\Managed\Unity.Services.Relay.dll
 --assembly-folder=C:\Users\Admin\Documents\GitHub\CodenamesMobile\Temp\StagingArea\Data\Managed\
 --pdb-search-paths=Temp/ManagedSymbols/
 --method=Unity.Networking.Transport.SimulatorPipelineStageInSend, Unity.Networking.Transport, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null::Receive(Unity.Networking.Transport.NetworkPipelineContext&, Unity.Networking.Transport, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|Unity.Networking.Transport.InboundRecvBuffer&, Unity.Networking.Transport, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|Unity.Networking.Transport.NetworkPipelineStage+Requests&, Unity.Networking.Transport, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089)--d55b8e17f69a1e99e774225233c7145e

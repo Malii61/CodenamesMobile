@@ -43,7 +43,7 @@ public class CodenamesGameManager : NetworkBehaviour
     }
     public void OnClick_ResetGameButton()
     {
-        Loader.LoadScene(Loader.Scene.GameScene);
+        Loader.LoadSceneOnNetwork(Loader.Scene.GameScene);
     }
     [ClientRpc]
     private void OnGameStartedClientRpc()

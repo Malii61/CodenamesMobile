@@ -9,7 +9,7 @@ public class NetcodeUI : MonoBehaviour
         startHostButton.onClick.AddListener(() =>
         {
             CodenamesGameMultiplayer.Instance.StartHost();
-            Loader.LoadScene(Loader.Scene.GameScene);
+            Loader.LoadSceneOnNetwork(Loader.Scene.GameScene);
             gameObject.SetActive(false);
         });
         startClientButton.onClick.AddListener(() =>

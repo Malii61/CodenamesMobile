@@ -1,15 +1,33 @@
 using TMPro;
+using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class InGameLobbyUI : MonoBehaviour
+public class InGameLobbyUI : NetworkBehaviour
 {
     [SerializeField] private TextMeshProUGUI lobbyNameText;
     [SerializeField] private TextMeshProUGUI lobbyCodeText;
+    [SerializeField] private Button leaveRoomButton;
+    [SerializeField] private Transform areYouSurePanel;
+    [SerializeField] private Button yesButton;
+    [SerializeField] private Button noButton;
+    private void Awake()
+    {
+        leaveRoomButton.onClick.AddListener(() => { areYouSurePanel.gameObject.SetActive(true); });
+        yesButton.onClick.AddListener(() => {
+            CodenamesGameLobby.Instance.LeaveLobby();
+            NetworkManager.Singleton.Shutdown();
+            Loader.LoadScene(Loader.Scene.MainMenuScene);
+        });
+        noButton.onClick.AddListener(() => { areYouSurePanel.gameObject.SetActive(false); });
+
+        areYouSurePanel.gameObject.SetActive(false);
+    }
     private void Start()
     {
         Lobby lobby = CodenamesGameLobby.Instance.GetLobby();
-        lobbyNameText.text = "LobbyName: " + lobby.Name;
-        lobbyCodeText.text = "LobbyCode: " + lobby.LobbyCode;
+        lobbyNameText.text = "Lobi Adý: " + lobby.Name;
+        lobbyCodeText.text = "Lobi Kodu: " + lobby.LobbyCode;
     }
 }

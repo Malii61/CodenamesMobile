@@ -31,7 +31,7 @@ public class ScoreManager : NetworkBehaviour
     {
         OnGuessedRedWordServerRpc();
     }
-    [ServerRpc(RequireOwnership =false)]
+    [ServerRpc(RequireOwnership = false)]
     private void OnGuessedRedWordServerRpc()
     {
         OnGuessedRedWordClientRpc();
@@ -40,13 +40,12 @@ public class ScoreManager : NetworkBehaviour
     private void OnGuessedRedWordClientRpc()
     {
         int remainingWordCount = int.Parse(remainingWordCountTextOnRedTeam.text) - 1;
+        remainingWordCountTextOnRedTeam.text = remainingWordCount.ToString();
         if (remainingWordCount == 0)
         {
             OnRedTeamWon?.Invoke(this, EventArgs.Empty);
-            Debug.Log("red kazandý");
         }
-        else
-            remainingWordCountTextOnRedTeam.text = remainingWordCount.ToString();
+
     }
 
     private void OperativeManager_OnGuessedBlueWord(object sender, OperativeManager.OnGuessedWordEventArgs e)
@@ -62,12 +61,10 @@ public class ScoreManager : NetworkBehaviour
     private void OnGuessedBlueWordClientRpc()
     {
         int remainingWordCount = int.Parse(remainingWordCountTextOnBlueTeam.text) - 1;
+        remainingWordCountTextOnBlueTeam.text = remainingWordCount.ToString();
         if (remainingWordCount == 0)
         {
             OnBlueTeamWon?.Invoke(this, EventArgs.Empty);
-            Debug.Log("blue kazandý");
         }
-        else
-            remainingWordCountTextOnBlueTeam.text = remainingWordCount.ToString();
     }
 }

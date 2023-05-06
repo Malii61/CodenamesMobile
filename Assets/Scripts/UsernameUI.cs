@@ -6,7 +6,7 @@ public class UsernameUI : MonoBehaviour
     public static string username;
     private void Start()
     {
-        username = "Player" + Random.Range(10, 99);
+        username = "Player" + Random.Range(10, 991);
         inputField.text = username;
     }
     public void OnInputFieldTextChange()
