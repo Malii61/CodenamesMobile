@@ -12,6 +12,7 @@ public class CodenamesGameManager : NetworkBehaviour
     private const int WORD_COUNT = 17;
 
     [SerializeField] private Button startGameButton;
+    [SerializeField] private Button resetGameButton;
 
     public EventHandler OnGameStarted;
 
@@ -28,15 +29,28 @@ public class CodenamesGameManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (!IsServer)
+        {
             startGameButton.gameObject.SetActive(false);
+            resetGameButton.gameObject.SetActive(false);
+        }
     }
     public void OnClick_StartButton()
     {
         startGameButton.gameObject.SetActive(false);
-        OnGameStarted?.Invoke(this, EventArgs.Empty);
+        OnGameStartedClientRpc();
         ChooseTheSideToStartFirst();
         SetWords();
     }
+    public void OnClick_ResetGameButton()
+    {
+        Loader.LoadScene(Loader.Scene.GameScene);
+    }
+    [ClientRpc]
+    private void OnGameStartedClientRpc()
+    {
+        OnGameStarted?.Invoke(this, EventArgs.Empty);
+    }
+
     private void ChooseTheSideToStartFirst()
     {
         //this function is gonna be executed only at server side
@@ -95,18 +109,18 @@ public class CodenamesGameManager : NetworkBehaviour
             }
         }
     }
-    [ServerRpc(RequireOwnership = false)]
-    private void SetButtonServerRpc(NetworkObjectReference reference, SideColor sideColor, bool onlySpymastersCanSee = true, bool addItems = true)
+    [ServerRpc]
+    private void SetButtonServerRpc(NetworkObjectReference reference, SideColor sideColor)
     {
-        SetButtonClientRpc(reference, sideColor, onlySpymastersCanSee, addItems);
+        SetButtonClientRpc(reference, sideColor);
     }
     [ClientRpc]
-    private void SetButtonClientRpc(NetworkObjectReference reference, SideColor sideColor, bool onlySpymastersCanSee = true, bool addItems = true)
+    private void SetButtonClientRpc(NetworkObjectReference reference, SideColor sideColor)
     {
         var localSide = CodenamesGameMultiplayer.Instance.GetPlayerData().side;
         bool canSeeColor = true;
         //only spymasters can see the buttons color
-        if (onlySpymastersCanSee && (localSide == Side.BlueSideOperative || localSide == Side.RedSideOperative))
+        if (localSide == Side.BlueSideOperative || localSide == Side.RedSideOperative)
             canSeeColor = false;
 
         reference.TryGet(out NetworkObject obj);
@@ -115,15 +129,13 @@ public class CodenamesGameManager : NetworkBehaviour
         {
             if (canSeeColor)
                 button.image.color = blue;
-            if (addItems)
-                blueSideWords.Add(button, false);
+            blueSideWords.Add(button, false);
         }
         else if (sideColor == SideColor.Red)
         {
             if (canSeeColor)
                 button.image.color = red; //red
-            if (addItems)
-                redSideWords.Add(button, false);
+            redSideWords.Add(button, false);
         }
     }
 
@@ -131,36 +143,54 @@ public class CodenamesGameManager : NetworkBehaviour
     {
         if (blueSideWords.ContainsKey(btn))
         {
-            Debug.Log("game manager: kelime mavide var");
-
-            blueSideWords[btn] = true;
             OperativeManager.Instance.CheckGuessedButtonColor(SideColor.Blue);
             CheckIfPlayerGuessedRight(playerSideColor, SideColor.Blue);
-            SetButtonServerRpc(btn.GetComponentInChildren<NetworkObject>(), SideColor.Blue, false, false);
+            ShowButtonVisualServerRpc(btn.GetComponentInChildren<NetworkObject>(), SideColor.Blue);
         }
         else if (redSideWords.ContainsKey(btn))
         {
-            Debug.Log("game manager: kelime kýrmýzýda var");
-            redSideWords[btn] = true;
             OperativeManager.Instance.CheckGuessedButtonColor(SideColor.Red);
             CheckIfPlayerGuessedRight(playerSideColor, SideColor.Red);
-            SetButtonServerRpc(btn.GetComponentInChildren<NetworkObject>(), SideColor.Red, false, false);
+            ShowButtonVisualServerRpc(btn.GetComponentInChildren<NetworkObject>(), SideColor.Red);
         }
         else
         {
             //guessed noncolor word
-            Debug.Log("game manager: kelime yok");
             OperativeManager.Instance.CheckGuessedButtonColor(SideColor.None);
             ChangeGameState();
         }
 
+    }
+    [ServerRpc(RequireOwnership = false)]
+    private void ShowButtonVisualServerRpc(NetworkObjectReference reference, SideColor btnColor)
+    {
+        ShowButtonVisualClientRpc(reference, btnColor);
+    }
+    [ClientRpc]
+    private void ShowButtonVisualClientRpc(NetworkObjectReference reference, SideColor btnColor)
+    {
+
+        reference.TryGet(out NetworkObject obj);
+        Button button = obj.GetComponentInParent<Button>();
+        if (btnColor == SideColor.Blue)
+        {
+            button.image.color = blue;
+            blueSideWords[button] = true;
+        }
+        else if (btnColor == SideColor.Red)
+        {
+            button.image.color = red;
+            redSideWords[button] = true;
+        }
+        // button will be not clickable anymore 
+        button.enabled = false;
+        button.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
     }
 
     private void CheckIfPlayerGuessedRight(SideColor playerSideColor, SideColor btnColor)
     {
         if (playerSideColor != btnColor)
         {
-            Debug.Log("check if player guessed right: yanlýþ seçti state deðiþiyor." + playerSideColor + " " + btnColor);
             //guessed wrong
             ChangeGameState();
         }

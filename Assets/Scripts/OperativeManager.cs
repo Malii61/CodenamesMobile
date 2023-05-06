@@ -10,11 +10,14 @@ public class OperativeManager : MonoBehaviour
     public event EventHandler<OnGuessedWordEventArgs> OnGuessedBlueWord;
     public event EventHandler<OnGuessedWordEventArgs> OnGuessedNonColorWord;
 
+    [SerializeField] private Button finishGuessButton;
     private bool isGuessable;
     private Button currentButton;
     private void Awake()
     {
         Instance = this;
+        finishGuessButton.onClick.AddListener(() => { OnClick_FinishGuessButton(); });
+        finishGuessButton.gameObject.SetActive(false);
     }
     public class OnGuessedWordEventArgs : EventArgs
     {
@@ -34,15 +37,13 @@ public class OperativeManager : MonoBehaviour
         {
             isGuessable = false;
         }
+        finishGuessButton.gameObject.SetActive(isGuessable);
     }
     public void OnClick_WordSelected(Button btn)
     {
         if (!isGuessable)
             return;
         currentButton = btn;
-        Debug.Log(btn.GetHashCode());
-        Debug.Log(btn.GetInstanceID());
-        Debug.Log("operative manager: kelime seçildi");
         Side side = CodenamesGameMultiplayer.Instance.GetPlayerData().side;
         SideColor localSideColor;
         if (side == Side.BlueSideOperative)
@@ -50,6 +51,10 @@ public class OperativeManager : MonoBehaviour
         else
             localSideColor = SideColor.Red;
         CodenamesGameManager.Instance.OnPlayerGuessed(btn, localSideColor);
+    }
+    private void OnClick_FinishGuessButton()
+    {
+        GameStateManager.Instance.ChangeState();
     }
     public void CheckGuessedButtonColor(SideColor btnColor)
     {

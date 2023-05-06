@@ -11,40 +11,34 @@ public class WordTableUI : NetworkBehaviour
     public static WordTableUI Instance { get; private set; }
     [SerializeField] List<TextMeshProUGUI> wordTexts;
     private List<string> wordList;
-    private bool executeOnce;
     private void Awake()
     {
         Instance = this;
     }
-    public override void OnNetworkSpawn()
+    private void Start()
     {
         CodenamesGameManager.Instance.OnGameStarted += ShowWord;
+        gameObject.SetActive(false);
     }
 
     private void ShowWord(object sender, EventArgs e)
     {
-        Debug.Log("Kelimeler gösteriliyor");
+        gameObject.SetActive(true);
+
+        if (!IsServer)
+            return;
+        wordList = WordGenerator.GenerateRandomWordList(wordTexts.Count);
+        for (int i = 0; i < wordList.Count; i++)
+        {
+            FixedString64Bytes word = wordList[i];
+            GenerateRandomListClientRpc(i, word);
+        }
     }
     public override void OnDestroy()
     {
         CodenamesGameManager.Instance.OnGameStarted -= ShowWord;
     }
 
-    private void Update()
-    {
-        if (!IsServer || executeOnce)
-            return;
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            executeOnce = true;
-            wordList = WordGenerator.GenerateRandomWordList(wordTexts.Count);
-            for (int i = 0; i < wordList.Count; i++)
-            {
-                FixedString64Bytes word = wordList[i];
-                GenerateRandomListClientRpc(i, word);
-            }
-        }
-    }
     [ClientRpc]
     private void GenerateRandomListClientRpc(int order, FixedString64Bytes word)
     {

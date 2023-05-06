@@ -19,7 +19,10 @@ public class ClueDisplayPanelUI : NetworkBehaviour
         GameStateManager.Instance.OnStateChanged += GameStateManager_OnStateChanged;
         gameObject.SetActive(false);
     }
-
+    public override void OnDestroy()
+    {
+        CodenamesGameManager.Instance.OnGameStarted -= GameStateManager_OnStateChanged;
+    }
     private void GameStateManager_OnStateChanged(object sender, EventArgs e)
     {
         Side side = CodenamesGameMultiplayer.Instance.GetPlayerData().side;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Collections;
@@ -29,9 +30,15 @@ public class SideManager : NetworkBehaviour
     [SerializeField] private Transform BlueSideOperativeTransform;
     [SerializeField] private Transform BlueSideSpymasterTransform;
 
+    [SerializeField] private RectTransform RedSideRectTransform;
+    [SerializeField] private RectTransform BlueSideRectTransform;
+
     [SerializeField] private Transform usernameLabelPrefab;
 
-    private List<Vector3> firstPositions = new List<Vector3>();
+    private List<Vector2> firstPositions = new List<Vector2>();
+    private Button lastSelectedButton;
+
+    private Dictionary<ulong, ulong> usernamePrefabs = new Dictionary<ulong, ulong>();
     private void Awake()
     {
         firstPositions.Add(RedSideOperativeTransform.position);
@@ -39,10 +46,31 @@ public class SideManager : NetworkBehaviour
         firstPositions.Add(RedSideSpymasterTransform.position);
         firstPositions.Add(BlueSideSpymasterTransform.position);
     }
+    private void Start()
+    {
+        CodenamesGameManager.Instance.OnGameStarted += CodenamesGameManager_OnGameStarted;
+    }
 
-    private Button lastSelectedButton;
+    private void CodenamesGameManager_OnGameStarted(object sender, EventArgs e)
+    {
+        //disable the buttons
 
-    private Dictionary<ulong, ulong> usernamePrefabs = new Dictionary<ulong, ulong>();
+        RedSideOperativeButton.gameObject.SetActive(false);
+        RedSideSpymasterButton.gameObject.SetActive(false);
+        BlueSideOperativeButton.gameObject.SetActive(false);
+        BlueSideSpymasterButton.gameObject.SetActive(false);
+
+        // set the side positions
+        BlueSideRectTransform.sizeDelta = new Vector2(BlueSideRectTransform.sizeDelta.x, BlueSideRectTransform.sizeDelta.y - 100);
+        BlueSideRectTransform.Translate(new Vector2(0, 50));
+        RedSideRectTransform.sizeDelta = new Vector2(RedSideRectTransform.sizeDelta.x, RedSideRectTransform.sizeDelta.y - 100);
+        RedSideRectTransform.Translate(new Vector2(0, 50));
+        UpdateTransforms(true);
+    }
+    public override void OnDestroy()
+    {
+        CodenamesGameManager.Instance.OnGameStarted -= CodenamesGameManager_OnGameStarted;
+    }
     public override void OnNetworkSpawn()
     {
         RedSideOperativeButton.onClick.AddListener(() =>
@@ -61,11 +89,29 @@ public class SideManager : NetworkBehaviour
         {
             OnClick_SideButton(Side.BlueSideSpymaster, NetworkManager.Singleton.LocalClientId, CodenamesGameMultiplayer.Instance.GetPlayerName());
         });
-
+        UpdateTransforms();
     }
-
-    private void UpdateTransforms()
+    private void LateUpdate()
     {
+        if (new Vector2(RedSideOperativeTransform.position.x,RedSideOperativeTransform.position.y) != firstPositions[0])
+            UpdateTransforms();
+    }
+    private void UpdateTransforms(bool rectPosChanged = false)
+    {
+        if (rectPosChanged)
+        {
+            for (int i = 0; i < firstPositions.Count; i++)
+            {
+                if (i < firstPositions.Count / 2)
+                {
+                    firstPositions[i] = new Vector2(firstPositions[i].x, firstPositions[i].y + 30);
+                }
+                else
+                {
+                    firstPositions[i] = new Vector2(firstPositions[i].x, firstPositions[i].y + 48);
+                }
+            }
+        }
         RedSideOperativeTransform.position = firstPositions[0];
         RedSideOperativeTransform.localScale = Vector3.one;
 
@@ -78,11 +124,7 @@ public class SideManager : NetworkBehaviour
         BlueSideSpymasterTransform.position = firstPositions[3];
         BlueSideSpymasterTransform.localScale = Vector3.one;
     }
-    private void LateUpdate()
-    {
-        if (RedSideOperativeTransform.position != firstPositions[0])
-            UpdateTransforms();
-    }
+
     public void OnClick_SideButton(Side _side, ulong clientId, FixedString64Bytes username)
     {
         //check last selected button
