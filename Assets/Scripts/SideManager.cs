@@ -35,10 +35,10 @@ public class SideManager : NetworkBehaviour
 
     [SerializeField] private Transform usernameLabelPrefab;
 
-    private List<Vector2> firstPositions = new List<Vector2>();
+    private readonly List<Vector2> firstPositions = new List<Vector2>();
     private Button lastSelectedButton;
 
-    private Dictionary<ulong, ulong> usernamePrefabs = new Dictionary<ulong, ulong>();
+    private Dictionary<ulong, ulong> usernameLabelPrefabs = new Dictionary<ulong, ulong>();
     private void Awake()
     {
         firstPositions.Add(RedSideOperativeTransform.position);
@@ -49,6 +49,28 @@ public class SideManager : NetworkBehaviour
     private void Start()
     {
         CodenamesGameManager.Instance.OnGameStarted += CodenamesGameManager_OnGameStarted;
+        CodenamesGameMultiplayer.Instance.OnPlayerLeft += CodenamesGameMultiplayer_OnPlayerLeft;
+        CodenamesGameMultiplayer.Instance.OnPlayerJoined += CodenamesGameMultiplayer_OnPlayerJoined;
+    }
+
+    private void CodenamesGameMultiplayer_OnPlayerJoined(object sender, CodenamesGameMultiplayer.ClientIdEventArgs e)
+    {
+        foreach (var usernameLabel in usernameLabelPrefabs)
+        {
+            string username = NetworkManager.SpawnManager.SpawnedObjects[usernameLabel.Value].transform.GetChild(0).GetComponent<TextMeshProUGUI>().text;
+            AddUsernameToDictionaryClientRpc(usernameLabel.Key, usernameLabel.Value, username);
+        }
+    }
+
+    private void CodenamesGameMultiplayer_OnPlayerLeft(object sender, CodenamesGameMultiplayer.ClientIdEventArgs e)
+    {
+        Destroy(NetworkManager.SpawnManager.SpawnedObjects[usernameLabelPrefabs[e.clientId]].transform.gameObject);
+        RemoveUsernameLabelPrefabClientRpc(e.clientId);
+    }
+    [ClientRpc]
+    private void RemoveUsernameLabelPrefabClientRpc(ulong clientId)
+    {
+        usernameLabelPrefabs.Remove(clientId);
     }
 
     private void CodenamesGameManager_OnGameStarted(object sender, EventArgs e)
@@ -93,7 +115,7 @@ public class SideManager : NetworkBehaviour
     }
     private void LateUpdate()
     {
-        if (new Vector2(RedSideOperativeTransform.position.x,RedSideOperativeTransform.position.y) != firstPositions[0])
+        if (new Vector2(RedSideOperativeTransform.position.x, RedSideOperativeTransform.position.y) != firstPositions[0])
             UpdateTransforms();
     }
     private void UpdateTransforms(bool rectPosChanged = false)
@@ -145,22 +167,25 @@ public class SideManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void SetUsernamePrefabServerRpc(ulong clientId, FixedString64Bytes username, Side side)
     {
-        if (!usernamePrefabs.ContainsKey(clientId))
+        if (!usernameLabelPrefabs.ContainsKey(clientId))
         {
             NetworkObject usernamePrefabNetworkObj = Instantiate(usernameLabelPrefab, GetTransformFromSide(side)).GetComponent<NetworkObject>();
             usernamePrefabNetworkObj.SpawnWithOwnership(NetworkManager.LocalClientId);
             ulong prefabId = usernamePrefabNetworkObj.NetworkObjectId;
             AddUsernameToDictionaryClientRpc(clientId, prefabId, username.ToString());
         }
-        NetworkManager.SpawnManager.SpawnedObjects[usernamePrefabs[clientId]].transform.SetParent(GetTransformFromSide(side));
+        NetworkManager.SpawnManager.SpawnedObjects[usernameLabelPrefabs[clientId]].transform.SetParent(GetTransformFromSide(side));
     }
 
     [ClientRpc]
     private void AddUsernameToDictionaryClientRpc(ulong clientId, ulong networkObjectId, string username)
     {
-        usernamePrefabs.Add(clientId, networkObjectId);
-        Transform usernamePrefab = NetworkManager.SpawnManager.SpawnedObjects[usernamePrefabs[clientId]].transform;
+        if (usernameLabelPrefabs.ContainsKey(clientId))
+            return;
+        usernameLabelPrefabs.Add(clientId, networkObjectId);
+        Transform usernamePrefab = NetworkManager.SpawnManager.SpawnedObjects[usernameLabelPrefabs[clientId]].transform;
         usernamePrefab.GetChild(0).GetComponent<TextMeshProUGUI>().text = username;
+        usernamePrefab.localScale = Vector3.one;
     }
     private Transform GetTransformFromSide(Side side)
     {

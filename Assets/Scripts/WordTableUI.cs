@@ -44,21 +44,6 @@ public class WordTableUI : NetworkBehaviour
     {
         wordTexts[order].text = word.ToString();
     }
-    public void OnClick_OptionButton(TextMeshProUGUI word)
-    {
-        OnClick_WordServerRpc(word.text);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void OnClick_WordServerRpc(string word)
-    {
-        OnClick_WordClientRpc(word);
-    }
-    [ClientRpc]
-    private void OnClick_WordClientRpc(string word)
-    {
-        Debug.Log("(CLIENT) þuna bastýn: " + word);
-    }
     public List<TextMeshProUGUI> GetRandomWords(int wordCount)
     {
         System.Random rng = new System.Random();

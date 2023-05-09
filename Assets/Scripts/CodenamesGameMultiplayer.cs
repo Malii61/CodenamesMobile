@@ -7,16 +7,20 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     public static CodenamesGameMultiplayer Instance { get; private set; }
 
     public event EventHandler OnPlayerDataNetworkListChanged;
-
+    public event EventHandler OnTryingToJoinGame;
+    public event EventHandler OnFailedToJoinGame;
+    public event EventHandler<ClientIdEventArgs> OnPlayerLeft;
+    public event EventHandler<ClientIdEventArgs> OnPlayerJoined;
+    public class ClientIdEventArgs: EventArgs
+    {
+        public ulong clientId;
+    }
     private NetworkList<PlayerData> playerDataNetworkList;
 
     private void Awake()
     {
         Instance = this;
-
-
         DontDestroyOnLoad(gameObject);
-
 
         playerDataNetworkList = new NetworkList<PlayerData>();
         playerDataNetworkList.OnListChanged += PlayerDataNetworkList_OnListChanged;
@@ -31,19 +35,31 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
         if (!IsServer)
             return;
         //host
+        Debug.Log("bEN SERVERFIM");
         NetworkManager_OnClientConnectedCallback(0);
     }
     public void StartHost()
     {
         NetworkManager.Singleton.StartHost();
+        NetworkManager.Singleton.ConnectionApprovalCallback += NetworkManager_ConnectionApprovalCallback;
         NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_OnClientConnectedCallback;
         NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_Server_OnClientDisconnectCallback;
     }
     public void StartClient()
     {
-        Debug.Log("Client baþlatýlýyor");
         NetworkManager.Singleton.StartClient();
         NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_Client_OnClientConnectedCallback;
+    }
+    private void NetworkManager_ConnectionApprovalCallback(NetworkManager.ConnectionApprovalRequest connectionApprovalRequest, NetworkManager.ConnectionApprovalResponse connectionApprovalResponse)
+    {
+
+        if (NetworkManager.Singleton.ConnectedClientsIds.Count >= CodenamesGameLobby.MAX_PLAYER_AMOUNT)
+        {
+            connectionApprovalResponse.Approved = false;
+            return;
+        }
+
+        connectionApprovalResponse.Approved = true;
     }
     private void NetworkManager_Client_OnClientConnectedCallback(ulong clientId)
     {
@@ -57,18 +73,26 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
             if (playerData.clientId == clientId)
             {
                 // Disconnected!
+                OnPlayerLeft?.Invoke(this, new ClientIdEventArgs { clientId = clientId });
                 playerDataNetworkList.RemoveAt(i);
             }
         }
     }
     private void NetworkManager_OnClientConnectedCallback(ulong clientId)
     {
+        if (!IsServer)
+        {
+            return;
+        }
         playerDataNetworkList.Add(new PlayerData
         {
             clientId = clientId,
         });
+        OnPlayerJoined?.Invoke(this, new ClientIdEventArgs { clientId = clientId });
         SetPlayerNameServerRpc(GetPlayerName());
     }
+
+ 
     [ServerRpc(RequireOwnership = false)]
     private void SetPlayerNameServerRpc(string playerName, ServerRpcParams serverRpcParams = default)
     {
@@ -82,7 +106,6 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     }
     public void ChangePlayerSide(Side side)
     {
-        Debug.Log(side);
         ChangePlayerSideServerRpc(side);
     }
 
@@ -100,7 +123,6 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     public string GetPlayerName()
     {
         return UsernameUI.username;
-        return GetPlayerData().playerName.ToString();
     }
     public int GetPlayerDataIndexFromClientId(ulong clientId)
     {

@@ -16,11 +16,15 @@ using Unity.Networking.Transport.Relay;
 public class CodenamesGameLobby : MonoBehaviour
 {
     private const string KEY_RELAY_JOIN_CODE = "RelayJoinCode";
-    private const int MAX_PLAYER_AMOUNT = 15;
+    public const int MAX_PLAYER_AMOUNT = 15;
     public static CodenamesGameLobby Instance { get; private set; }
 
     public event EventHandler<OnLobbyListChangedEventArgs> OnLobbyListChanged;
-
+    public event EventHandler OnCreateLobbyStarted;
+    public event EventHandler OnCreateLobbyFailed;
+    public event EventHandler OnJoinStarted;
+    public event EventHandler OnQuickJoinFailed;
+    public event EventHandler OnJoinFailed;
     public class OnLobbyListChangedEventArgs : EventArgs
     {
         public List<Lobby> lobbyList;
@@ -64,7 +68,7 @@ public class CodenamesGameLobby : MonoBehaviour
             lobbyListTimer -= Time.deltaTime;
             if (lobbyListTimer < 0)
             {
-                float lobbyListTimerMax = 3f;
+                float lobbyListTimerMax = 5f;
                 lobbyListTimer = lobbyListTimerMax;
                 ListLobbies();
             }
@@ -130,6 +134,7 @@ public class CodenamesGameLobby : MonoBehaviour
     }
     public async void CreateLobby(string lobbyName, bool isPrivate)
     {
+        OnCreateLobbyStarted?.Invoke(this, EventArgs.Empty);
         try
         {
             joinedLobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYER_AMOUNT, new CreateLobbyOptions
@@ -156,10 +161,12 @@ public class CodenamesGameLobby : MonoBehaviour
         catch (LobbyServiceException e)
         {
             Debug.Log(e);
+            OnCreateLobbyFailed?.Invoke(this, EventArgs.Empty);
         }
     }
     public async void QuickJoin()
     {
+        OnJoinStarted?.Invoke(this, EventArgs.Empty);
         try
         {
             joinedLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
@@ -173,10 +180,12 @@ public class CodenamesGameLobby : MonoBehaviour
         catch (LobbyServiceException e)
         {
             Debug.Log(e);
+            OnQuickJoinFailed?.Invoke(this, EventArgs.Empty);
         }
     }
     public async void JoinWithCode(string lobbyCode)
     {
+        OnJoinStarted?.Invoke(this, EventArgs.Empty);
         try
         {
             joinedLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode);
@@ -191,10 +200,12 @@ public class CodenamesGameLobby : MonoBehaviour
         catch (LobbyServiceException e)
         {
             Debug.Log(e);
+            OnJoinFailed?.Invoke(this, EventArgs.Empty);
         }
     }
     public async void JoinWithId(string lobbyId)
     {
+        OnJoinStarted?.Invoke(this, EventArgs.Empty);
         try
         {
             joinedLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId);
@@ -209,6 +220,7 @@ public class CodenamesGameLobby : MonoBehaviour
         catch (LobbyServiceException e)
         {
             Debug.Log(e);
+            OnJoinFailed?.Invoke(this, EventArgs.Empty);
         }
     }
     public Lobby GetLobby()

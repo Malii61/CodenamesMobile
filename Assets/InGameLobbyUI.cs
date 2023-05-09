@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
@@ -6,6 +7,7 @@ using UnityEngine.UI;
 
 public class InGameLobbyUI : NetworkBehaviour
 {
+
     [SerializeField] private TextMeshProUGUI lobbyNameText;
     [SerializeField] private TextMeshProUGUI lobbyCodeText;
     [SerializeField] private Button leaveRoomButton;
@@ -16,9 +18,7 @@ public class InGameLobbyUI : NetworkBehaviour
     {
         leaveRoomButton.onClick.AddListener(() => { areYouSurePanel.gameObject.SetActive(true); });
         yesButton.onClick.AddListener(() => {
-            CodenamesGameLobby.Instance.LeaveLobby();
-            NetworkManager.Singleton.Shutdown();
-            Loader.LoadScene(Loader.Scene.MainMenuScene);
+            LeftGame();
         });
         noButton.onClick.AddListener(() => { areYouSurePanel.gameObject.SetActive(false); });
 
@@ -29,5 +29,11 @@ public class InGameLobbyUI : NetworkBehaviour
         Lobby lobby = CodenamesGameLobby.Instance.GetLobby();
         lobbyNameText.text = "Lobi Adý: " + lobby.Name;
         lobbyCodeText.text = "Lobi Kodu: " + lobby.LobbyCode;
+    }
+    private void LeftGame()
+    {
+        CodenamesGameLobby.Instance.LeaveLobby();
+        NetworkManager.Singleton.Shutdown();
+        Loader.LoadScene(Loader.Scene.MainMenuScene);
     }
 }

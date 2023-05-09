@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -21,7 +20,13 @@ public class MainMenuCleanUp : MonoBehaviour
         {
             Destroy(CodenamesGameLobby.Instance.gameObject);
         }
+        StartCoroutine(LoadScene());
+    }
+    private IEnumerator LoadScene()
+    {
+        yield return CodenamesGameLobby.Instance == null;
         Loader.LoadScene(Loader.Scene.LobbyScene);
+
     }
 
 }

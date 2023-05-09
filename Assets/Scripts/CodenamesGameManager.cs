@@ -169,7 +169,6 @@ public class CodenamesGameManager : NetworkBehaviour
     [ClientRpc]
     private void ShowButtonVisualClientRpc(NetworkObjectReference reference, SideColor btnColor)
     {
-
         reference.TryGet(out NetworkObject obj);
         Button button = obj.GetComponentInParent<Button>();
         if (btnColor == SideColor.Blue)

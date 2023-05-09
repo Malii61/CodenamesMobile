@@ -51,6 +51,7 @@ public class OperativeManager : MonoBehaviour
         else
             localSideColor = SideColor.Red;
         CodenamesGameManager.Instance.OnPlayerGuessed(btn, localSideColor);
+        btn.onClick.RemoveAllListeners();
     }
     private void OnClick_FinishGuessButton()
     {
