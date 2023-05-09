@@ -13,7 +13,8 @@ public class CodenamesGameManager : NetworkBehaviour
 
     [SerializeField] private Button startGameButton;
     [SerializeField] private Button resetGameButton;
-
+    [SerializeField] private Sprite blueAgentSprite;
+    [SerializeField] private Sprite redAgentSprite;
     public EventHandler OnGameStarted;
 
     private Dictionary<Button, bool> redSideWords = new Dictionary<Button, bool>();
@@ -22,6 +23,7 @@ public class CodenamesGameManager : NetworkBehaviour
     SideColor startSide;
     public Color blue = new Color32(2, 144, 204, 255);
     public Color red = new Color32(209, 45, 45, 255);
+
     private void Awake()
     {
         Instance = this;
@@ -53,7 +55,7 @@ public class CodenamesGameManager : NetworkBehaviour
 
     private void ChooseTheSideToStartFirst()
     {
-        //this function is gonna be executed only at server side
+        //this function will be executed by server side only
         startSide = (SideColor)UnityEngine.Random.Range(0, 1);
         if (startSide == SideColor.Blue)
         {
@@ -122,9 +124,9 @@ public class CodenamesGameManager : NetworkBehaviour
         //only spymasters can see the buttons color
         if (localSide == Side.BlueSideOperative || localSide == Side.RedSideOperative)
             canSeeColor = false;
-
         reference.TryGet(out NetworkObject obj);
         Button button = obj.GetComponentInParent<Button>();
+
         if (sideColor == SideColor.Blue)
         {
             if (canSeeColor)
@@ -171,19 +173,37 @@ public class CodenamesGameManager : NetworkBehaviour
     {
         reference.TryGet(out NetworkObject obj);
         Button button = obj.GetComponentInParent<Button>();
+        Image agentImage = button.transform.GetChild(2).GetComponent<Image>();
+        agentImage.enabled = true;
         if (btnColor == SideColor.Blue)
         {
             button.image.color = blue;
+            agentImage.sprite = blueAgentSprite;
             blueSideWords[button] = true;
         }
         else if (btnColor == SideColor.Red)
         {
             button.image.color = red;
+            agentImage.sprite = redAgentSprite;
             redSideWords[button] = true;
         }
-        // button will be not clickable anymore 
+        //disable the button
         button.enabled = false;
-        button.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
+
+        // add a new listener to agent button
+        Button agentButton = agentImage.GetComponent<Button>();
+        agentButton.enabled = true;
+        agentButton.onClick.AddListener(() =>
+        {
+            var tempColor = agentButton.image.color;
+
+            if (tempColor.a == 0f)
+                tempColor.a = 1f;
+
+            else tempColor.a = 0f;
+
+            agentButton.image.color = tempColor;
+        });
     }
 
     private void CheckIfPlayerGuessedRight(SideColor playerSideColor, SideColor btnColor)

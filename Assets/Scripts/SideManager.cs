@@ -175,6 +175,7 @@ public class SideManager : NetworkBehaviour
             AddUsernameToDictionaryClientRpc(clientId, prefabId, username.ToString());
         }
         NetworkManager.SpawnManager.SpawnedObjects[usernameLabelPrefabs[clientId]].transform.SetParent(GetTransformFromSide(side));
+        Debug.Log("parenttan  sonra" + NetworkManager.SpawnManager.SpawnedObjects[usernameLabelPrefabs[clientId]].transform.localScale);
     }
 
     [ClientRpc]
@@ -185,7 +186,9 @@ public class SideManager : NetworkBehaviour
         usernameLabelPrefabs.Add(clientId, networkObjectId);
         Transform usernamePrefab = NetworkManager.SpawnManager.SpawnedObjects[usernameLabelPrefabs[clientId]].transform;
         usernamePrefab.GetChild(0).GetComponent<TextMeshProUGUI>().text = username;
+        Debug.Log(usernamePrefab.localScale);
         usernamePrefab.localScale = Vector3.one;
+        Debug.Log(usernamePrefab.localScale);
     }
     private Transform GetTransformFromSide(Side side)
     {

@@ -32,7 +32,11 @@ public class InGameLobbyUI : NetworkBehaviour
     }
     private void LeftGame()
     {
-        CodenamesGameLobby.Instance.LeaveLobby();
+        if (IsServer)
+            CodenamesGameLobby.Instance.DeleteLobby();
+        else
+            CodenamesGameLobby.Instance.LeaveLobby();
+
         NetworkManager.Singleton.Shutdown();
         Loader.LoadScene(Loader.Scene.MainMenuScene);
     }
