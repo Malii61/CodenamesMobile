@@ -27,8 +27,10 @@ public class ClueDisplayPanelUI : NetworkBehaviour
     {
         Side side = CodenamesGameMultiplayer.Instance.GetPlayerData().side;
         State state = GameStateManager.Instance.GetState();
-        if(side == Side.RedSideSpymaster && state == State.BlueSpymasterGivesClue ||
-            side == Side.BlueSideSpymaster && state == State.RedSpymasterGivesClue)
+
+        if (side == Side.RedSideSpymaster && state == State.BlueSpymasterGivesClue ||
+            side == Side.BlueSideSpymaster && state == State.RedSpymasterGivesClue ||
+            state == State.GameOver)
         {
             DisablePanelServerRpc();
         }

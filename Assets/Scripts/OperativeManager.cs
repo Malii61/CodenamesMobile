@@ -6,30 +6,31 @@ public class OperativeManager : MonoBehaviour
 {
     public static OperativeManager Instance { get; private set; }
 
-    public event EventHandler<OnGuessedWordEventArgs> OnGuessedRedWord;
-    public event EventHandler<OnGuessedWordEventArgs> OnGuessedBlueWord;
-    public event EventHandler<OnGuessedWordEventArgs> OnGuessedNonColorWord;
+    public event EventHandler OnGuessedRedWord;
+    public event EventHandler OnGuessedBlueWord;
+    public event EventHandler<OnSelectedBlackWordEventArgs> OnGuessedBlackWord;
+    public event EventHandler OnGuessedNonColorWord;
 
     [SerializeField] private Button finishGuessButton;
     private bool isGuessable;
-    private Button currentButton;
+    public class OnSelectedBlackWordEventArgs : EventArgs
+    {
+        public SideColor sideClr;
+    }
     private void Awake()
     {
         Instance = this;
         finishGuessButton.onClick.AddListener(() => { OnClick_FinishGuessButton(); });
         finishGuessButton.gameObject.SetActive(false);
     }
-    public class OnGuessedWordEventArgs : EventArgs
-    {
-        public Button button;
-    }
+
     private void Start()
     {
         GameStateManager.Instance.OnStateChanged += GameStateManager_OnStateChanged;
     }
     private void GameStateManager_OnStateChanged(object sender, EventArgs e)
     {
-        if (GameStateManager.Instance.CanLocalPlayerGuess())
+        if (GameStateManager.Instance.CanLocalPlayerGuess() && GameStateManager.Instance.GetState() != State.GameOver)
         {
             isGuessable = true;
         }
@@ -43,7 +44,6 @@ public class OperativeManager : MonoBehaviour
     {
         if (!isGuessable)
             return;
-        currentButton = btn;
         Side side = CodenamesGameMultiplayer.Instance.GetPlayerData().side;
         SideColor localSideColor;
         if (side == Side.BlueSideOperative)
@@ -60,11 +60,14 @@ public class OperativeManager : MonoBehaviour
     public void CheckGuessedButtonColor(SideColor btnColor)
     {
         if (btnColor == SideColor.Blue)
-            OnGuessedBlueWord?.Invoke(this, new OnGuessedWordEventArgs { button = currentButton });
+            OnGuessedBlueWord?.Invoke(this, EventArgs.Empty);
         else if (btnColor == SideColor.Red)
-            OnGuessedRedWord?.Invoke(this, new OnGuessedWordEventArgs { button = currentButton });
-        else
-            OnGuessedNonColorWord?.Invoke(this, new OnGuessedWordEventArgs { button = currentButton });
-
+            OnGuessedRedWord?.Invoke(this, EventArgs.Empty);
+        else if (btnColor == SideColor.Grey)
+            OnGuessedNonColorWord?.Invoke(this, EventArgs.Empty);
+    }
+    public void OnSelectedBlackWord(SideColor playerSideColor)
+    {
+        OnGuessedBlackWord?.Invoke(this, new OnSelectedBlackWordEventArgs { sideClr = playerSideColor });
     }
 }

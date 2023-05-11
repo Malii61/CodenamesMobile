@@ -16,7 +16,8 @@ public enum SideColor
 {
     Blue,
     Red,
-    None
+    Black,
+    Grey
 }
 public class SideManager : NetworkBehaviour
 {
@@ -57,7 +58,8 @@ public class SideManager : NetworkBehaviour
     {
         foreach (var usernameLabel in usernameLabelPrefabs)
         {
-            string username = NetworkManager.SpawnManager.SpawnedObjects[usernameLabel.Value].transform.GetChild(0).GetComponent<TextMeshProUGUI>().text;
+            Transform usernameLabelTransform = NetworkManager.SpawnManager.SpawnedObjects[usernameLabel.Value].transform;
+            string username = usernameLabelTransform.GetChild(0).GetComponent<TextMeshProUGUI>().text;
             AddUsernameToDictionaryClientRpc(usernameLabel.Key, usernameLabel.Value, username);
         }
     }
@@ -115,8 +117,25 @@ public class SideManager : NetworkBehaviour
     }
     private void LateUpdate()
     {
+        //check position changes
         if (new Vector2(RedSideOperativeTransform.position.x, RedSideOperativeTransform.position.y) != firstPositions[0])
             UpdateTransforms();
+
+        if (NetworkManager.SpawnManager == null)
+            return;
+
+        //check scale changes
+        foreach (KeyValuePair<ulong, ulong> usernameLabel in usernameLabelPrefabs)
+        {
+            if (!NetworkManager.SpawnManager.SpawnedObjects.ContainsKey(usernameLabel.Value))
+                continue;
+            NetworkObject usernamePrefabNetworkObj = NetworkManager.SpawnManager.SpawnedObjects[usernameLabel.Value];
+            Transform usernameLabelTransform = usernamePrefabNetworkObj.transform;
+            if (usernameLabelTransform.localScale != Vector3.one)
+            {
+                usernameLabelTransform.localScale = Vector3.one;
+            }
+        }
     }
     private void UpdateTransforms(bool rectPosChanged = false)
     {
@@ -126,7 +145,7 @@ public class SideManager : NetworkBehaviour
             {
                 if (i < firstPositions.Count / 2)
                 {
-                    firstPositions[i] = new Vector2(firstPositions[i].x, firstPositions[i].y + 9);
+                    firstPositions[i] = new Vector2(firstPositions[i].x, firstPositions[i].y + 7);
                 }
                 else
                 {
@@ -174,8 +193,8 @@ public class SideManager : NetworkBehaviour
             ulong prefabId = usernamePrefabNetworkObj.NetworkObjectId;
             AddUsernameToDictionaryClientRpc(clientId, prefabId, username.ToString());
         }
-        NetworkManager.SpawnManager.SpawnedObjects[usernameLabelPrefabs[clientId]].transform.SetParent(GetTransformFromSide(side));
-        Debug.Log("parenttan  sonra" + NetworkManager.SpawnManager.SpawnedObjects[usernameLabelPrefabs[clientId]].transform.localScale);
+        Transform usernameLabelTransform = NetworkManager.SpawnManager.SpawnedObjects[usernameLabelPrefabs[clientId]].transform;
+        usernameLabelTransform.SetParent(GetTransformFromSide(side));
     }
 
     [ClientRpc]
@@ -185,10 +204,8 @@ public class SideManager : NetworkBehaviour
             return;
         usernameLabelPrefabs.Add(clientId, networkObjectId);
         Transform usernamePrefab = NetworkManager.SpawnManager.SpawnedObjects[usernameLabelPrefabs[clientId]].transform;
-        usernamePrefab.GetChild(0).GetComponent<TextMeshProUGUI>().text = username;
-        Debug.Log(usernamePrefab.localScale);
-        usernamePrefab.localScale = Vector3.one;
-        Debug.Log(usernamePrefab.localScale);
+        var textField = usernamePrefab.GetChild(0).GetComponent<TextMeshProUGUI>();
+        textField.text = username;
     }
     private Transform GetTransformFromSide(Side side)
     {

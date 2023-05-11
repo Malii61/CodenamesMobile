@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -7,7 +5,7 @@ using UnityEngine.UI;
 
 public class GameOverPanelUI : NetworkBehaviour
 {
-    [SerializeField] private TextMeshProUGUI winnerText;
+    [SerializeField] private TextMeshProUGUI gameOverText;
     private Animator anim;
     [SerializeField] private Button playAgainButton;
     private void Awake()
@@ -23,24 +21,40 @@ public class GameOverPanelUI : NetworkBehaviour
         playAgainButton.gameObject.SetActive(false);
     }
 
-    private void ScoreManager_OnRedTeamWon(object sender, System.EventArgs e)
+    private void ScoreManager_OnRedTeamWon(object sender, ScoreManager.OnRedTeamWonEventArgs e)
     {
         gameObject.SetActive(true);
-        GetComponent<Image>().color = CodenamesGameManager.Instance.red;
-        winnerText.text = "Kýrmýzý takým casuslarý tüm kelimeleri tahmin etti !";
-        anim.Play("GameOver");
+        SideColor sidecolor = CodenamesGameMultiplayer.Instance.GetLocalPlayerSideColor();
+        if (sidecolor == SideColor.Blue)
+        {
+            gameOverText.text = e.blueSideGameOverText;
+        }
+        else
+        {
+            gameOverText.text = e.redSideGameOverText;
+            anim.Play("GameOver");
+        }
         if (IsServer)
             playAgainButton.gameObject.SetActive(true);
+        GameStateManager.Instance.SetState(State.GameOver);
     }
 
-    private void ScoreManager_OnBlueTeamWon(object sender, System.EventArgs e)
+    private void ScoreManager_OnBlueTeamWon(object sender, ScoreManager.OnBlueTeamWonEventArgs e)
     {
         gameObject.SetActive(true);
-        GetComponent<Image>().color = CodenamesGameManager.Instance.blue;
-        winnerText.text = "Mavi takým casuslarý tüm kelimeleri tahmin etti !";
-        anim.Play("GameOver");
+        SideColor sidecolor = CodenamesGameMultiplayer.Instance.GetLocalPlayerSideColor();
+        if (sidecolor == SideColor.Blue)
+        {
+            gameOverText.text = e.blueSideGameOverText;
+            anim.Play("GameOver");
+        }
+        else
+        {
+            gameOverText.text = e.redSideGameOverText;
+        }
         if (IsServer)
             playAgainButton.gameObject.SetActive(true);
+        GameStateManager.Instance.SetState(State.GameOver);
     }
     private void OnClick_PlayAgainButton()
     {

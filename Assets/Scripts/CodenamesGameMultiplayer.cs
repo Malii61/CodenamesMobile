@@ -35,7 +35,6 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
         if (!IsServer)
             return;
         //host
-        Debug.Log("bEN SERVERFIM");
         NetworkManager_OnClientConnectedCallback(0);
     }
     public void StartHost()
@@ -155,5 +154,13 @@ public class CodenamesGameMultiplayer : NetworkBehaviour
     public PlayerData GetPlayerDataFromPlayerIndex(int playerIndex)
     {
         return playerDataNetworkList[playerIndex];
+    }
+    public SideColor GetLocalPlayerSideColor()
+    {
+        Side side = GetPlayerData().side;
+        if (side == Side.BlueSideSpymaster || side == Side.BlueSideOperative)
+            return SideColor.Blue;
+        else
+            return SideColor.Red;
     }
 }

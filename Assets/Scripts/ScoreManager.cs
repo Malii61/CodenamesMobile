@@ -9,8 +9,18 @@ public class ScoreManager : NetworkBehaviour
     [SerializeField] private TextMeshProUGUI remainingWordCountTextOnRedTeam;
     [SerializeField] private TextMeshProUGUI remainingWordCountTextOnBlueTeam;
 
-    public event EventHandler OnRedTeamWon;
-    public event EventHandler OnBlueTeamWon;
+    public event EventHandler<OnRedTeamWonEventArgs> OnRedTeamWon;
+    public class OnRedTeamWonEventArgs : EventArgs
+    {
+        public string redSideGameOverText;
+        public string blueSideGameOverText;
+    }
+    public event EventHandler<OnBlueTeamWonEventArgs> OnBlueTeamWon;
+    public class OnBlueTeamWonEventArgs : EventArgs
+    {
+        public string redSideGameOverText;
+        public string blueSideGameOverText;
+    }
     private void Awake()
     {
         Instance = this;
@@ -19,6 +29,37 @@ public class ScoreManager : NetworkBehaviour
     {
         OperativeManager.Instance.OnGuessedBlueWord += OperativeManager_OnGuessedBlueWord;
         OperativeManager.Instance.OnGuessedRedWord += OperativeManager_OnGuessedRedWord;
+        OperativeManager.Instance.OnGuessedBlackWord += OperativeManager_OnGuessedBlackWord;
+    }
+
+    private void OperativeManager_OnGuessedBlackWord(object sender, OperativeManager.OnSelectedBlackWordEventArgs e)
+    {
+        OnGuessedBlackWordServerRpc(e.sideClr);
+    }
+    [ServerRpc(RequireOwnership = false)]
+    private void OnGuessedBlackWordServerRpc(SideColor sideColor)
+    {
+        OnGuessedBlackWordClientRpc(sideColor);
+    }
+    [ClientRpc]
+    private void OnGuessedBlackWordClientRpc(SideColor sideColor)
+    {
+        if (sideColor == SideColor.Blue)
+        {
+            OnRedTeamWon?.Invoke(this, new OnRedTeamWonEventArgs
+            {
+                blueSideGameOverText = "Kaybettiniz.. Suikastçiyi buldunuz",
+                redSideGameOverText = "Kazandýnýz!! Mavi takýmýn casuslarý suikastçiyi buldu."
+            });
+        }
+        else if (sideColor == SideColor.Red)
+        {
+            OnBlueTeamWon?.Invoke(this, new OnBlueTeamWonEventArgs
+            {
+                blueSideGameOverText = "Kazandýnýz!! Mavi takýmýn casuslarý suikastçiyi buldu.",
+                redSideGameOverText = "Kaybettiniz.. Suikastçiyi buldunuz"
+            });
+        }
     }
     public void SetRemainingWordCount(int count, SideColor sideColor)
     {
@@ -27,7 +68,7 @@ public class ScoreManager : NetworkBehaviour
         else if (sideColor == SideColor.Red)
             remainingWordCountTextOnRedTeam.text = count.ToString();
     }
-    private void OperativeManager_OnGuessedRedWord(object sender, OperativeManager.OnGuessedWordEventArgs e)
+    private void OperativeManager_OnGuessedRedWord(object sender, EventArgs e)
     {
         OnGuessedRedWordServerRpc();
     }
@@ -43,12 +84,16 @@ public class ScoreManager : NetworkBehaviour
         remainingWordCountTextOnRedTeam.text = remainingWordCount.ToString();
         if (remainingWordCount == 0)
         {
-            OnRedTeamWon?.Invoke(this, EventArgs.Empty);
+            OnRedTeamWon?.Invoke(this, new OnRedTeamWonEventArgs
+            {
+                blueSideGameOverText = "Kaybettiniz.. Kýrmýzý takýmýn casuslarý tüm kelimeleri buldu.",
+                redSideGameOverText = "Kazandýnýz!! Casuslar tüm kelimeleri tahmin etti."
+            });
         }
 
     }
 
-    private void OperativeManager_OnGuessedBlueWord(object sender, OperativeManager.OnGuessedWordEventArgs e)
+    private void OperativeManager_OnGuessedBlueWord(object sender, EventArgs e)
     {
         OnGuessedBlueWordServerRpc();
     }
@@ -64,7 +109,11 @@ public class ScoreManager : NetworkBehaviour
         remainingWordCountTextOnBlueTeam.text = remainingWordCount.ToString();
         if (remainingWordCount == 0)
         {
-            OnBlueTeamWon?.Invoke(this, EventArgs.Empty);
+            OnBlueTeamWon?.Invoke(this, new OnBlueTeamWonEventArgs
+            {
+                blueSideGameOverText = "Kazandýnýz!! Casuslar tüm kelimeleri tahmin etti.",
+                redSideGameOverText = "Kaybettiniz.. Mavi takýmýn casuslarý tüm kelimeleri buldu."
+            });
         }
     }
 }

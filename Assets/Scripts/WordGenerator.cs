@@ -65,6 +65,9 @@ public class WordGenerator : MonoBehaviour
         "Taht",
         "Hortum",
         "Lazer",
+        "Borsa",
+        "Para",
+        "Cennet",
     };
 
     public static List<string> GenerateRandomWordList(int listLength)

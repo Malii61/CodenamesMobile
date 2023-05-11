@@ -9,20 +9,24 @@ public class CodenamesGameManager : NetworkBehaviour
 {
     public static CodenamesGameManager Instance { get; private set; }
 
-    private const int WORD_COUNT = 17;
+    private const int WORD_COUNT = 18;
 
     [SerializeField] private Button startGameButton;
     [SerializeField] private Button resetGameButton;
     [SerializeField] private Sprite blueAgentSprite;
     [SerializeField] private Sprite redAgentSprite;
+    [SerializeField] private Sprite greyAgentSprite;
+    [SerializeField] private Sprite blackAgentSprite;
     public EventHandler OnGameStarted;
 
     private Dictionary<Button, bool> redSideWords = new Dictionary<Button, bool>();
     private Dictionary<Button, bool> blueSideWords = new Dictionary<Button, bool>();
+    private Button blackWord;
 
     SideColor startSide;
     public Color blue = new Color32(2, 144, 204, 255);
     public Color red = new Color32(209, 45, 45, 255);
+    public Color grey = new Color32(224, 224, 224, 255);
 
     private void Awake()
     {
@@ -53,10 +57,11 @@ public class CodenamesGameManager : NetworkBehaviour
         OnGameStarted?.Invoke(this, EventArgs.Empty);
     }
 
+
     private void ChooseTheSideToStartFirst()
     {
         //this function will be executed by server side only
-        startSide = (SideColor)UnityEngine.Random.Range(0, 1);
+        startSide = (SideColor)UnityEngine.Random.Range(0, 2);
         if (startSide == SideColor.Blue)
         {
             SetWordCountClientRpc(WORD_COUNT, SideColor.Blue);
@@ -99,7 +104,7 @@ public class CodenamesGameManager : NetworkBehaviour
                 SetButtonServerRpc(words[i].transform.parent.GetComponentInChildren<NetworkObject>(), SideColor.Red);
             }
         }
-        for (int i = WORD_COUNT / 2 + 1; i < WORD_COUNT; i++)
+        for (int i = WORD_COUNT / 2 + 1; i < WORD_COUNT -1; i++)
         {
             if (startSide == SideColor.Blue)
             {
@@ -110,6 +115,7 @@ public class CodenamesGameManager : NetworkBehaviour
                 SetButtonServerRpc(words[i].transform.parent.GetComponentInChildren<NetworkObject>(), SideColor.Blue);
             }
         }
+        SetButtonServerRpc(words[WORD_COUNT - 1].transform.parent.GetComponentInChildren<NetworkObject>(), SideColor.Black);
     }
     [ServerRpc]
     private void SetButtonServerRpc(NetworkObjectReference reference, SideColor sideColor)
@@ -139,6 +145,15 @@ public class CodenamesGameManager : NetworkBehaviour
                 button.image.color = red; //red
             redSideWords.Add(button, false);
         }
+        else if (sideColor == SideColor.Black)
+        {
+            if (canSeeColor)
+            {
+                button.image.color = Color.black; //red
+                button.transform.GetChild(0).GetComponent<TextMeshProUGUI>().color = Color.white;
+            }
+            blackWord = button;
+        }
     }
 
     public void OnPlayerGuessed(Button btn, SideColor playerSideColor)
@@ -155,11 +170,16 @@ public class CodenamesGameManager : NetworkBehaviour
             CheckIfPlayerGuessedRight(playerSideColor, SideColor.Red);
             ShowButtonVisualServerRpc(btn.GetComponentInChildren<NetworkObject>(), SideColor.Red);
         }
+        else if(blackWord == btn)
+        {
+            OperativeManager.Instance.OnSelectedBlackWord(playerSideColor);
+            ShowButtonVisualServerRpc(btn.GetComponentInChildren<NetworkObject>(), SideColor.Black);
+        }
         else
         {
-            //guessed noncolor word
-            OperativeManager.Instance.CheckGuessedButtonColor(SideColor.None);
+            OperativeManager.Instance.CheckGuessedButtonColor(SideColor.Grey);
             ChangeGameState();
+            ShowButtonVisualServerRpc(btn.GetComponentInChildren<NetworkObject>(), SideColor.Grey);
         }
 
     }
@@ -186,6 +206,16 @@ public class CodenamesGameManager : NetworkBehaviour
             button.image.color = red;
             agentImage.sprite = redAgentSprite;
             redSideWords[button] = true;
+        }
+        else if(btnColor == SideColor.Grey)
+        {
+            button.image.color = grey;
+            agentImage.sprite = greyAgentSprite;
+        }
+        else if(btnColor == SideColor.Black)
+        {
+            button.image.color = Color.black;
+            agentImage.sprite = blackAgentSprite;
         }
         //disable the button
         button.enabled = false;
