@@ -17,7 +17,8 @@
 
 Codenames Mobile was developed with C# on Unity. It is a multiplayer word puzzle game.
  
-There are 2 teams in the game and each team has the roles of agent and spymaster. Spymasters must give clues to their agents to find the word of their color. The team that finds the words of its own color wins the game.
+There are 2 teams in the game and each team has the roles of agent and spymaster. Spymasters must give clues to their agents to find the word of their color. The team that finds the words of its own color wins the game. The team that finds the word in black directly loses.
+
 My purpose in making this game is to develop the mobile version of Codenames, which is already played on the web, and to gain experience in this process.
   
   
