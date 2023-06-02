@@ -34,7 +34,7 @@ Here are some features of the game:
   <img src="/Images/in%20game%201.png" width="450" height="225"/>
   
  ### Gameplay
-  <img src="/Images/Gameplay.gif" width="200" height="375"/>
+  <img src="/Images/Gameplay.gif" width="500" height="250"/>
   
   
 ### Installation
